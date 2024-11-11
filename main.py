@@ -474,29 +474,41 @@ def p_error(p):
         raise ValueError(error_message)
 
 
-
-# Construye el lexer y el parser
-lexer = lex.lex()
-parser = yacc.yacc()
-
+# Function to create and initialize the lexer and parser
+def create_lexer_and_parser():
+    # Define your lexer and parser construction here
+    lexer = lex.lex()
+    parser = yacc.yacc()
+    return lexer, parser
 
 @app.post("/submit-code")
 async def submit_code(request: CodeRequest):
     global ERROR, ListaSimbolos, ListaFunciones
-    ERROR = []  # Reinicia la lista de errores
-    ListaSimbolos = {}  # Reinicia la lista de símbolos
-    ListaFunciones = {}  # Reinicia la lista de funciones
+
+    # Reset state for each request
+    ERROR = []
+    ListaSimbolos = {}
+    ListaFunciones = {}
+
+    # Create a new lexer and parser for this request
+    lexer, parser = create_lexer_and_parser()
+
+    # Set up the lexer with the provided code
+    lexer.input(request.code)
+    lexer.lineno = 1  # Ensure the line number starts at 1
 
     try:
-        result = parser.parse(request.code)
+        # Parse the code
+        result = parser.parse(request.code, lexer=lexer)
+        
+        # Check for semantic errors
         if len(ERROR) != 0:
-            return {"message": "Errores semánticos", "errors": ERROR}
-        else:
-            return {
-                "message": "Prueba de sintaxis superada\nPrograma corrido correctamente",
-                "symbols": ListaSimbolos,
-                "functions": ListaFunciones,
-            }
+            return {"message": "Semantic errors", "errors": ERROR}
+        
+        return {
+            "message": "Syntax check passed. Program executed successfully.",
+            "symbols": ListaSimbolos,
+            "functions": ListaFunciones,
+        }
     except Exception as e:
-        return {"message": "Error de sintaxis", "errors": [str(e)]}
-
+        return {"message": "Syntax error", "errors": [str(e)]}
