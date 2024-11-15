@@ -39,7 +39,6 @@ tokens = [
 
     # Delimiters ( ) [ ] { } , . ; :
     'LPAREN', 'RPAREN',
-    'LBRACKET', 'RBRACKET',
     'LBRACE', 'RBRACE',
     'COMMA', 'SEMI', 'COLON',
 
@@ -74,8 +73,6 @@ t_TERNARY          = r'\?'
 # Delimiters
 t_LPAREN           = r'\('
 t_RPAREN           = r'\)'
-t_LBRACKET         = r'\['
-t_RBRACKET         = r'\]'
 t_LBRACE           = r'\{'
 t_RBRACE           = r'\}'
 t_COMMA            = r','
@@ -150,17 +147,12 @@ def p_declaration(p): #Declaration
 #LISTA DE SIMBOLOS {  identificador : [tipo de dato, dato, tamaño]}
 # int a;
 def p_init_declarator_list(p): #Voy metiendo los identificadores a la tabla de simbolos
-	'''init_declarator_list : type_specifier init_declarator
-	| init_declarator_list COMMA init_declarator'''
+	'''init_declarator_list : type_specifier init_declarator'''
 	tamaño = len(p)
 	if (tamaño == 3):
 		if (ListaSimbolos[p[2]][1] != 0 and type(ListaSimbolos[p[2]][1]).__name__ != p[1]):
 			ERROR.append(f"Error de asignacion, no es del tipo")
 		ListaSimbolos[p[2]][0] = p[1]
-	elif (tamaño == 4): 
-		if (ListaSimbolos[p[3]][1] != 0 and type(ListaSimbolos[p[3]][1]).__name__ != p[1]):
-			ERROR.append(f"Error de asignacion, no es del tipo")
-		ListaSimbolos[p[3]][0] = p[1]
 	p[0] = p[1]
 
 def p_type_specifier(p):
@@ -179,11 +171,7 @@ def p_init_declarator(p): #Ahora guardo el valor, si es que se inicializa.
 #LISTA DE SIMBOLOS {  identificador : [tipo de dato, dato, tamaño]}
 
 def p_declarator(p): #Que pasa si desde aqui meto los valores a la tabla donde, el ID es la llave, sino se modifica 'ID', entonces
-	'''declarator : ID
-	| ID LBRACKET constant_expression RBRACKET'''
-	if (len(p) > 2):
-		if ((type(p[3]) != type(1))): 
-			ERROR.append(f"Error en la linea: {p.lineno(1)},Error semantico, se esperan enteros")
+	'''declarator : ID'''
 	p[0]= p[1]
 	ListaSimbolos[p[1]] =[None,0,None]
     
@@ -257,25 +245,18 @@ def p_assignment_expressionConstante(p):
 	p[0] = p[1]
 
 def p_assignment_expression(p): #Aqui se debe verificar que unary es un id previamente creado en la tabla de simbolos
-	'''assignment_expression : ID LBRACKET constant_expression RBRACKET EQUALS assignment_expression
-	| ID EQUALS assignment_expression'''
+	'''assignment_expression : ID EQUALS assignment_expression'''
+	
 	if (p[1] not in ListaSimbolos): 
 		ERROR.append("Error semantico, no se encuentra dicho id: ", p[1])
 		return
-	if (len(p) == 4):
-		if (ListaSimbolos[p[1]][0] == type(p[3]).__name__):
-			ListaSimbolos[p[1]][1] = p[3]
-			p[0] = p[3]
-		else: 
-			ERROR.append(f" Error en la linea: {p.lineno(1)},Error semantico el valor asignado es de otro tipo, al id") 
-			return
-	else:
-		if (type(p[3]) != type(1) or ListaSimbolos[p[1]][0] != type(p[6]).__name__): 
-			ERROR.append(f"Error en la linea: {p.lineno(1)},Error semantico, el valor asignado es de otro tipo")
-			return
-		else: 
-			ListaSimbolos[p[1]][1] = p[6]
-			p[0] = p[6]
+	if (ListaSimbolos[p[1]][0] == type(p[3]).__name__):
+		print("LD id(direccion de memoria), Acumulador ")
+		ListaSimbolos[p[1]][1] = p[3]
+		p[0] = p[3]
+	else: 
+		ERROR.append(f" Error en la linea: {p.lineno(1)},Error semantico el valor asignado es de otro tipo, al id") 
+		return
 			
 
 #Yo solo voy a verificar que se ha diferente de 0
@@ -288,10 +269,6 @@ def p_conditional_expression(p):
 			ERROR.append(f"Error en la linea: {p.lineno(1)},Error Semantica, la condicion debe ser entera")
 			return
 		p[0] = p[3] if p[1] != 0 else p[5]
-	
-def p_constant_expression(p):
-	'''constant_expression : conditional_expression'''
-	p[0] = p[1]
 	
 def p_logical_or_expression(p):
 	'''logical_or_expression : logical_and_expression
@@ -386,14 +363,8 @@ def p_unary_expression(p):
 		elif(p[1] == '--'): p[0] = p[2] - 1
 
 def p_postfix_expression(p): #La primera opcion es traspado de funcion, la segunda es la asignacion de un arreglo, y la tercera es funcion con sus parametros, quite la llamada a punteros . y ->
-	'''postfix_expression : primary_expression
-	| postfix_expression LBRACKET expression RBRACKET'''
-	p[0]= p[1]
-	if (len(p) > 2):
-		if ((type(p[3]) != type(1))): 
-			ERROR.append(f"Error en la linea: {p.lineno(1)}, se esperan enteros")
-			return
-		p[0] = p[1] #Regresa el tipo
+	'''postfix_expression : primary_expression'''
+	p[0] = p[1] #Regresa el tipo
 
 #Representa una llama a funcion por lo cual, se verifica que exista la funcion, y que cada elemento se ha del mismo tipo al declarado	
 def p_postfix_Expression_Funciones(p):
