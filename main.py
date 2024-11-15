@@ -317,7 +317,7 @@ def p_logical_or_expression(p):
 		if not (isinstance(p[1], (int, float)) and isinstance(p[3], (int, float))): 
 			ERROR.append(f"Error en la linea: {p.lineno(1)},Error Semantico,no acepta comparacion cadenas0")
 			return 
-		if (p[2] == '||'): p[0] = 1 if (p[2] != 0 or p[3] != 0) else 0
+		if (p[2] == '||'): p[0] = 1 if (p[1] != 0 or p[3] != 0) else 0
 	
 #Sabemos que cualquier numero por 0, me da cero, y cualquier numero + 0, me da el numero.
 def p_logical_and_expression(p):
@@ -328,7 +328,7 @@ def p_logical_and_expression(p):
 		if not (isinstance(p[1], (int, float)) and isinstance(p[3], (int, float))): 
 			ERROR.append(f"Error en la linea: {p.lineno(1)},Error Semantico, no acepta comparacion cadenas3")
 			return
-		if (p[2] == '&&'): p[0] = 1 if (p[2] != 0 and p[3] != 0) else 0
+		if (p[2] == '&&'): p[0] = 1 if (p[1] != 0 and p[3] != 0) else 0
 
 def p_equality_expression(p):
 	'''equality_expression : relational_expression
