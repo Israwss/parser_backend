@@ -23,7 +23,7 @@ palabrasClave = ["else","return","str","float","for","if","while","do","int"] #P
 #Detectar el error
 ERROR = []
 
-#LISTA DE SIMBOLOS {  identificador : [tipo de dato, direccion, tamaño]}
+#LISTA DE SIMBOLOS {  identificador : [tipo de dato, dato, direccion]}
 ListaSimbolos={}
 
 #LISTA DE FUNCIONES { identificador : tipo que devuelve,[Lista de tipos datos de parametros]}
@@ -286,6 +286,7 @@ def p_conditional_expression(p):
 			return
 		p[0] = p[3] if p[1] != 0 else p[5]
 	
+	
 def p_logical_or_expression(p):
 	'''logical_or_expression : logical_and_expression
 	| logical_or_expression LOR logical_and_expression'''
@@ -294,7 +295,7 @@ def p_logical_or_expression(p):
 		if not (isinstance(p[1], (int, float)) and isinstance(p[3], (int, float))): 
 			ERROR.append(f"Error en la linea: {p.lineno(1)},Error Semantico,no acepta comparacion cadenas0")
 			return 
-		if (p[2] == '||'): p[0] = 1 if (p[2] != 0 or p[3] != 0) else 0
+		if (p[2] == '||'): p[0] = 1 if (p[1] != 0 or p[3] != 0) else 0
 	
 #Sabemos que cualquier numero por 0, me da cero, y cualquier numero + 0, me da el numero.
 def p_logical_and_expression(p):
@@ -305,7 +306,7 @@ def p_logical_and_expression(p):
 		if not (isinstance(p[1], (int, float)) and isinstance(p[3], (int, float))): 
 			ERROR.append(f"Error en la linea: {p.lineno(1)},Error Semantico, no acepta comparacion cadenas3")
 			return
-		if (p[2] == '&&'): p[0] = 1 if (p[2] != 0 and p[3] != 0) else 0
+		if (p[2] == '&&'): p[0] = 1 if (p[1] != 0 and p[3] != 0) else 0
 
 def p_equality_expression(p):
 	'''equality_expression : relational_expression
@@ -380,7 +381,7 @@ def p_unary_expression(p):
 
 def p_postfix_expression(p): #La primera opcion es traspado de funcion, la segunda es la asignacion de un arreglo, y la tercera es funcion con sus parametros, quite la llamada a punteros . y ->
 	'''postfix_expression : primary_expression'''
-	p[0] = p[1] #Regresa el tipo
+	p[0]= p[1]
 
 #Representa una llama a funcion por lo cual, se verifica que exista la funcion, y que cada elemento se ha del mismo tipo al declarado	
 def p_postfix_Expression_Funciones(p):
@@ -441,7 +442,6 @@ def p_error(p):
 	else:
 		print(f"Error de sintaxis al final de la entrada")
 		raise ValueError("Error de sintaxis")
-
 
 # Function to create and initialize the lexer and parser
 def create_lexer_and_parser():
